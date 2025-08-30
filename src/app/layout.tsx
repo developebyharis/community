@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SessionProvider } from "next-auth/react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,17 +13,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "My Next.js PWA",
   description: "Installable PWA with Next.js",
   manifest: "/manifest.json",
   themeColor: "#000000",
   icons: {
     icon: "./icon1.png",
-    apple: "./apple-icon.png"
-  }
-}
-
+    apple: "./apple-icon.png",
+  },
+};
 
 export default function RootLayout({
   children,
@@ -35,7 +35,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );
