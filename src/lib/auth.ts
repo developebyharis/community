@@ -9,7 +9,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        const res = await fetch(`http://localhost:4000/api/auth/jwt`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/jwt`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
