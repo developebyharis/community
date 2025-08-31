@@ -18,7 +18,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (!res.ok) throw new Error("Backend JWT fetch failed");
-        console.log(res);
         const data = await res.json();
         token.accessToken = data.accessToken;
       }
@@ -28,7 +27,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       return {
         ...session,
-        accessToken: token.accessToken,
+        accessToken: token.accessToken as string,
       };
     },
   },
