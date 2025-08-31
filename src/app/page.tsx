@@ -1,20 +1,24 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import SignIn from "@/components/signin"
+import { signOut } from "next-auth/react";
+import SignIn from "@/components/signin";
+import { useFetchProfile } from "@/hooks/UseProfile";
 
 export default function Home() {
-  const { data: session } = useSession();
+  const { user, loading } = useFetchProfile();
 
-  console.log("sess", session);
+  console.log("user", user);
 
+  if (loading) return <p>Loading...</p>;
+  if (!user) console.log('User not found or deleted.');
   return (
     <div className="p-4">
       <h1>Hello world testing backend</h1>
-      
-      {session ? (
+
+      {user ? (
         <div>
-          <p>Welcome, {session.user?.name}</p>
+          <p>Welcome, {user?.username}</p>
+          <button onClick={() => signOut()}>Signout</button>
         </div>
       ) : (
         <SignIn />
