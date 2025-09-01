@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
+import Header from "@/components/Header";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/Sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,8 +40,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider>
-          {children}
-          <Toaster richColors closeButton />
+          <SidebarProvider>
+            <AppSidebar />
+
+            <Header />
+            <main className="pt-10 md:pt-12 lg:pt-12">{children}</main>
+            <Toaster richColors closeButton />
+          </SidebarProvider>
         </SessionProvider>
       </body>
     </html>
