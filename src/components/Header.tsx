@@ -26,11 +26,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useFetchProfile } from "@/hooks/UseProfile";
 import { signOut } from "next-auth/react";
 import SignIn from "./signin";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [active, setActive] = useState("home");
   const { user } = useFetchProfile();
-
+  const router = useRouter();
   return (
     <>
       {/* Desktop Header */}
@@ -74,6 +75,7 @@ export default function Navbar() {
             <Button
               size="sm"
               className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-1 rounded-full px-4"
+              onClick={() => router.push("/submit")}
             >
               <Plus className="h-4 w-4" />
               Create

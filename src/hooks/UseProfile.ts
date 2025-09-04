@@ -7,14 +7,16 @@ import { User } from "@/types/user";
 import { toast } from "sonner";
 import type { Session } from "next-auth";
 
-
 type ExtendedSession = {
   accessToken?: string;
 } & Session;
 
-
-export function useFetchProfile() {
+export function useClientSession() {
   const { data: session } = useSession() as { data: ExtendedSession | null };
+  return session;
+}
+export function useFetchProfile() {
+  const session = useClientSession();
   const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
     if (!session?.accessToken) return;

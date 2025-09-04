@@ -25,6 +25,8 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import CreateCommunityDialog from "./community/CreateCommunity";
+import useCommunity from "@/hooks/useCommunity";
 
 // Reddit-style menu items
 const feedItems = [
@@ -38,13 +40,7 @@ const recentItems = [
   { title: "Saved", url: "#", icon: Star },
 ];
 
-const communities = [
-  { name: "r/programming", members: "4.2M", icon: "💻" },
-  { name: "r/webdev", members: "1.1M", icon: "🌐" },
-  { name: "r/reactjs", members: "456K", icon: "⚛️" },
-  { name: "r/javascript", members: "2.3M", icon: "🟨" },
-  { name: "r/css", members: "234K", icon: "🎨" },
-];
+
 
 const otherItems = [
   { title: "User Settings", url: "#", icon: Settings },
@@ -55,7 +51,8 @@ const otherItems = [
 
 export function AppSidebar() {
   const [showAllCommunities, setShowAllCommunities] = useState(false);
-  
+  const {fetchMyCommunity} = useCommunity()
+  console.log("eget",fetchMyCommunity.data)
   return (
     <Sidebar className="lg:pt-16 md:pt-16 pt-14 bg-white border-r border-gray-200">
       <SidebarTrigger className="md:hidden" />
@@ -121,15 +118,12 @@ export function AppSidebar() {
               {/* Create Community Button */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="hover:bg-gray-100 rounded-md">
-                  <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm">
-                    <Plus className="w-5 h-5 text-gray-600" />
-                    <span className="font-medium text-gray-900">Create Community</span>
-                  </a>
+                  <CreateCommunityDialog />
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               {/* Community List */}
-              {communities.slice(0, showAllCommunities ? communities.length : 5).map((community) => (
+              {/* {communities.slice(0, showAllCommunities ? communities.length : 5).map((community) => (
                 <SidebarMenuItem key={community.name}>
                   <SidebarMenuButton asChild className="hover:bg-gray-100 rounded-md">
                     <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm">
@@ -143,7 +137,7 @@ export function AppSidebar() {
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              ))} */}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
