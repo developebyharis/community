@@ -1,1 +1,1 @@
-export const COMMUNITY_PREFIX = "c/";
+export const COMMUNITY_PREFIX = "r/";

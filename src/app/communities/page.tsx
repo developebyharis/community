@@ -1,12 +1,12 @@
 "use client";
 
 import useCommunity from "@/hooks/useCommunity";
-import CommunityCard from "@/components/community/CommunityCard"; // Adjust path as needed
-import { toast } from "sonner"; // or your toast library
+import CommunityCard from "@/components/community/CommunityCard";
+import { toast } from "sonner";
 
 export default function CommunitiesPage() {
   const { fetchAllCommunity, followCommunity } = useCommunity();
-  
+
   console.log("fetchAllCommunity", fetchAllCommunity.data);
 
   if (fetchAllCommunity.isLoading) {
@@ -21,14 +21,9 @@ export default function CommunitiesPage() {
 
   const handleFollowCommunity = async (communityId: string) => {
     try {
-     
-
-   followCommunity.mutate(communityId)
-
-
-
+      followCommunity.mutate(communityId);
     } catch (error) {
-      toast.error('Failed to update follow status');
+      toast.error("Failed to update follow status");
       throw error; // Re-throw to trigger error handling in CommunityCard
     }
   };
