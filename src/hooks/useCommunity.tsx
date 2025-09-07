@@ -12,144 +12,110 @@ export default function useCommunity() {
 
   const createCommunity = useMutation({
     mutationFn: async (data: createCommunityValues) => {
-      const res = axios.post(
+      const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/community/me`,
         data,
         {
           headers: { Authorization: `Bearer ${session?.accessToken}` },
         }
       );
-
-      return toast.promise(res, {
-        loading: "Creating community...",
-        success: (res) => `${res.data.name} created successfully 🎉`,
-        error: (err) =>
-          `Failed to create community: ${
-            err?.response?.data?.message || err.message
-          }`,
-      });
+      return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["communities"] });
+      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      toast.success(`Community "${data.name}" created successfully!`);
+    },
+    onError: (error: any) => {
+      toast.error(
+        `Failed to create community: ${
+          error?.response?.data?.message || error.message
+        }`
+      );
     },
   });
-  const fetchMyCommunity = useQuery({
+
+  const fetchMyCommunities = useQuery({
     queryKey: ["my-communities", "my-followed-communities"],
     queryFn: async () => {
-      try {
-        const promise = axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/community/me`,
-          {
-            headers: { Authorization: `Bearer ${session?.accessToken}` },
-          }
-        );
-
-        toast.promise(promise, {
-          loading: "Fetching my communities...",
-          success: (res) => {
-            return `Fetched ${res.data.length} communities 🎉`;
-          },
-          error: (err) => {
-            return (
-              err?.response?.data?.message ||
-              err.message ||
-              "Failed to fetch communities ❌"
-            );
-          },
-        });
-
-        const response = await promise;
-        return response.data.data; 
-      } catch (error) {
-        throw error; 
-      }
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/community/me`,
+        {
+          headers: { Authorization: `Bearer ${session?.accessToken}` },
+        }
+      );
+      return response.data;
     },
+    enabled: !!session?.accessToken,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
   });
 
   const fetchAllCommunity = useQuery({
     queryKey: ["all-communities"],
     queryFn: async () => {
-      try {
-        const promise = axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/community`
-        );
-
-        toast.promise(promise, {
-          loading: "Fetching all communities...",
-          success: (res) => {
-            return `Fetched ${res.data.length} communities 🎉`;
-          },
-          error: (err) => {
-            return (
-              err?.response?.data?.message ||
-              err.message ||
-              "Failed to fetch communities ❌"
-            );
-          },
-        });
-
-        const response = await promise;
-        return response.data.data;
-      } catch (error) {
-        throw error;
-      }
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/community`
+      );
+      return response.data.data;
     },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: 1,
   });
 
   const followCommunity = useMutation({
     mutationFn: async (communityId: string) => {
-      const res = axios.patch(
+      const response = await axios.patch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/community/follow/${communityId}`,
-        {}, // no body
+        {},
         {
           headers: { Authorization: `Bearer ${session?.accessToken}` },
         }
       );
-
-      return toast.promise(res, {
-        loading: "Following community...",
-        success: (res) => `${res.data.message} 🎉`,
-        error: (err) =>
-          `Failed to follow community: ${
-            err?.response?.data?.message || err.message
-          }`,
-      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["communities"] });
-      queryClient.invalidateQueries({ queryKey: ["followed-communities"] });
+      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: ["all-communities"] });
+    },
+    onError: (error: any) => {
+      toast.error(
+        `Failed to follow community: ${
+          error?.response?.data?.message || error.message
+        }`
+      );
     },
   });
 
   const unfollowCommunity = useMutation({
     mutationFn: async (communityId: string) => {
-      const res = axios.patch(
+      const response = await axios.patch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/community/unfollow/${communityId}`,
-        {}, // no body
+        {},
         {
           headers: { Authorization: `Bearer ${session?.accessToken}` },
         }
       );
-
-      return toast.promise(res, {
-        loading: "Unfollowing community...",
-        success: (res) => `${res.data.message} 🎉`,
-        error: (err) =>
-          `Failed to unfollow community: ${
-            err?.response?.data?.message || err.message
-          }`,
-      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["communities"] });
-      queryClient.invalidateQueries({ queryKey: ["followed-communities"] });
+      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: ["all-communities"] });
+    },
+    onError: (error: any) => {
+      toast.error(
+        `Failed to unfollow community: ${
+          error?.response?.data?.message || error.message
+        }`
+      );
     },
   });
- 
 
   return {
     createCommunity,
-    fetchMyCommunity,
+    fetchMyCommunities,
     fetchAllCommunity,
     followCommunity,
     unfollowCommunity,

@@ -1,7 +1,7 @@
 "use client";
-
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import axios from "axios";
 import { User } from "@/types/user";
 import { toast } from "sonner";
@@ -15,14 +15,19 @@ export function useClientSession() {
   const { data: session } = useSession() as { data: ExtendedSession | null };
   return session;
 }
+
 export function useFetchProfile() {
   const session = useClientSession();
-  const [user, setUser] = useState<User | null>(null);
-  useEffect(() => {
-    if (!session?.accessToken) return;
 
-    async function fetchProfile() {
-      const profilePromise = axios.get<User>(
+  const {
+    data: user,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["user-profile", session?.accessToken],
+    queryFn: async (): Promise<User> => {
+      const response = await axios.get<User>(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/profile`,
         {
           headers: {
@@ -30,26 +35,35 @@ export function useFetchProfile() {
           },
         }
       );
+      return response.data;
+    },
+    enabled: !!session?.accessToken,
+    staleTime: 10 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    throwOnError: (error: any) => {
+      if (error?.response?.status === 404) {
+        toast.error("Profile not found. Please complete your profile setup.");
+        return false;
+      } else if (
+        error?.response?.status !== 401 &&
+        error?.response?.status !== 403
+      ) {
+        toast.error("Failed to load profile. Please try again.");
+        return false;
+      }
+      return false;
+    },
+  });
 
-      toast.promise(profilePromise, {
-        loading: "Loading profile...",
-        success: (res) => {
-          setUser(res.data);
-          return "Profile loaded successfully";
-        },
-        error: (err) => {
-          console.error("Error fetching profile:", err);
-          if (err.response?.status === 404) {
-            setUser(null);
-            return "Profile not found";
-          }
-          return "Failed to load profile";
-        },
-      });
-    }
-
-    fetchProfile();
-  }, [session]);
-
-  return { user };
+  return {
+    user: user || null,
+    isLoading,
+    error,
+    refetch,
+  };
 }

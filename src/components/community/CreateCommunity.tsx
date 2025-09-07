@@ -27,6 +27,7 @@ import {
   createCommunitySchema,
   createCommunityValues,
 } from "@/lib/validations/community.schema";
+import { Plus } from "lucide-react";
 
 const topicCategories: Record<string, string[]> = {
   Development: ["Web Development", "Mobile Development", "Backend", "Frontend"],
@@ -36,7 +37,7 @@ const topicCategories: Record<string, string[]> = {
   Security: ["Cybersecurity", "Ethical Hacking"],
 };
 
-export default function CommunityDialog() {
+export default function CreateCommunityDialog() {
   const [open, setOpen] = React.useState(false);
   const { createCommunity } = useCommunity();
 
@@ -67,7 +68,10 @@ export default function CommunityDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">Create Community</Button>
+        <div className="flex items-center gap-3 px-3 py-2 text-sm w-full">
+          <Plus className="w-5 h-5" />
+          <span className="font-medium">Create Community</span>
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
@@ -76,7 +80,6 @@ export default function CommunityDialog() {
           </DialogTitle>
         </DialogHeader>
 
-        {/* Step indicator */}
         <div className="flex items-center justify-between mb-4">
           {[1, 2].map((s) => (
             <div
@@ -93,7 +96,6 @@ export default function CommunityDialog() {
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4 min-h-[260px] flex flex-col"
           >
-            {/* Step 1 - Basic Info */}
             {step === 1 && (
               <div className="space-y-4">
                 <FormField
@@ -186,7 +188,6 @@ export default function CommunityDialog() {
               />
             )}
 
-            {/* Step navigation */}
             <div className="mt-auto flex justify-between pt-4">
               {step > 1 ? (
                 <Button
