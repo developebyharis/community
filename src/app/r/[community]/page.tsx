@@ -17,13 +17,13 @@ interface CommunityPageProps {
   }>;
 }
 
-export function CommunityHeader({
+ function CommunityHeader({
   community,
 }: {
   community: Community | undefined;
 }) {
   if (!community) {
-    return;
+    return null;
   }
   return (
     <div className="relative">
@@ -82,7 +82,7 @@ export function CommunityHeader({
   );
 }
 
-export function CommunityInfo() {
+ function CommunityInfo() {
   const rules = [
     "Be respectful and civil in discussions",
     "No spam or self-promotion without permission",
@@ -120,7 +120,7 @@ export function CommunityInfo() {
   );
 }
 
-export function CommunityPosts({
+ function CommunityPosts({
   community,
 }: {
   community: Community | undefined;
