@@ -156,7 +156,7 @@ export default function CreatePost() {
                 <FormItem>
                   <FormLabel>Content</FormLabel>
                   <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_KEY}
+                    apiKey={process.env.NEXT_PUBLIC_TINYMCE}
                     value={field.value}
                     onEditorChange={(content) => {
                       field.onChange(content);
