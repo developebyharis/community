@@ -1,6 +1,6 @@
-"use client";
+ "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,7 +41,6 @@ export default function CreatePost() {
 
   const communities = myCommunitiesData?.myFollowedCommunities?.data || [];
   const editorRef = useRef<TinyMCEEditor | null>(null);
-console.log("editorRef",editorRef)
   const form = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
     defaultValues: {

@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useClientSession } from "./UseProfile";
-import { PostFormValues } from "@/lib/validations/post.schema";
 import { CreatePost, UpdatePost } from "@/types/post";
 
 export default function usePost() {
@@ -12,7 +11,6 @@ export default function usePost() {
       if (!session?.accessToken) {
         throw new Error("No access token available");
       }
-      console.log("va", values);
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/post/me`,
         values,
@@ -56,7 +54,6 @@ export default function usePost() {
       if (!session?.accessToken) {
         throw new Error("No access token available");
       }
-      console.log("va", values);
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/post/me/${values.postId}`,
         values,

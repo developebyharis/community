@@ -6,7 +6,6 @@ import { useState } from "react";
 import { Post } from "@/types/post";
 
 export default function Vote({ post, voteTo }: { post: Post; voteTo: string }) {
-    console.log("post",post)
   const [localVotes, setLocalVotes] = useState<number>(
     post?.votes?.length || 0
   );

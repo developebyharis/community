@@ -1,13 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { MessageCircle, Share, Bookmark, MoreHorizontal } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  MessageCircle,
+  Share,
+  Bookmark,
+  MoreHorizontal,
+  ArrowLeft,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import Vote from "@/components/vote";
-import { User } from "@/types/user";
-import { Comment, Post } from "@/types/post";
+import type { User } from "@/types/user";
+import type { Comment, Post } from "@/types/post";
 import { buildCommentTree, formatPostTime } from "@/lib/utils";
 import useComment from "@/hooks/useComment";
 import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import useSaved from "@/hooks/useSaved";
 
 export default function PostDetail({
   post,
@@ -16,35 +32,60 @@ export default function PostDetail({
   post: Post;
   user: User | null;
 }) {
-  console.log("post", post);
+  const { savedComment, fetchSavedComment } = useSaved();
+  const [savedCommentIds, setSavedCommentIds] = useState<Set<string>>(
+    new Set()
+  );
+
+  useEffect(() => {
+    if (fetchSavedComment.data) {
+      const commentIds = fetchSavedComment.data.map(
+        (saved: any) => saved.commentId
+      );
+      setSavedCommentIds(new Set(commentIds));
+    }
+  }, [fetchSavedComment.data]);
+
+  // Update saved state when a comment is saved/unsaved
+  useEffect(() => {
+    if (savedComment.isSuccess && savedComment.data) {
+      const commentId = savedComment.variables; // The comment ID passed to the mutation
+      setSavedCommentIds((prev) => {
+        const newSet = new Set(prev);
+        if (savedComment.data.action === "saved") {
+          newSet.add(commentId);
+        } else {
+          newSet.delete(commentId);
+        }
+        return newSet;
+      });
+    }
+  }, [savedComment.isSuccess, savedComment.data]);
 
   const { createComment } = useComment();
   const [newComment, setNewComment] = useState<string>("");
-  const [comments, setComments] = useState<Comment[]>(
+  const [comments] = useState<Comment[]>(
     buildCommentTree(
       (post.comments || []).map((c) => ({ ...c, replies: c.replies || [] }))
     )
   );
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<string>("");
-const router = useRouter()
-  const toggleCollapse = (commentId: string) => {
-    const updateComment = (comments: Comment[]): Comment[] => {
-      return comments.map((comment) => {
-        if (comment.id === commentId) {
-          return { ...comment, isCollapsed: !comment.isCollapsed };
-        }
-        if (comment.replies.length > 0) {
-          return {
-            ...comment,
-            replies: updateComment(comment.replies),
-          };
-        }
-        return comment;
-      });
-    };
+  const [collapsedComments, setCollapsedComments] = useState<Set<string>>(
+    new Set()
+  );
+  const router = useRouter();
 
-    setComments(updateComment(comments));
+  const toggleCollapse = (commentId: string) => {
+    setCollapsedComments((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
   };
 
   const addComment = () => {
@@ -54,7 +95,6 @@ const router = useRouter()
       postId: post.id,
       body: newComment,
     };
-    console.log("Adding comment:", data);
     createComment.mutate(data);
     setNewComment("");
   };
@@ -71,183 +111,256 @@ const router = useRouter()
     setReplyText("");
     setReplyingTo(null);
   };
+  const handleSaveComment = (commentId: string) => {
+    if (!user) return;
 
-  const renderComment = (comment: Comment, depth: number = 0) => {
+    savedComment.mutate(commentId);
+  };
+
+  const isCommentSaved = (commentId: string) => {
+    return savedCommentIds.has(commentId);
+  };
+  const renderComment = (comment: Comment, depth = 0) => {
     const isReplying = replyingTo === comment.id;
+    const isCollapsed = collapsedComments.has(comment.id);
+    const isSaved = isCommentSaved(comment.id);
 
     return (
       <div
         key={comment.id}
         className={`${
-          depth > 0 ? "ml-6 border-l border-gray-200 pl-4" : ""
-        } space-y-2`}
+          depth > 0 ? "ml-6 border-l border-border/40 relative" : ""
+        }`}
       >
-        {/* Header */}
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <img
-            src={comment.author.avatar || "/default-avatar.png"}
-            alt={comment.author.username}
-            className="w-6 h-6 rounded-full"
-          />
-          <span className="font-medium text-gray-700 hover:underline cursor-pointer">
-            {comment.author.username}
-          </span>
-          <span>•</span>
-          <span>{formatPostTime(comment.createdAt)}</span>
-          <button
-            onClick={() => toggleCollapse(comment.id)}
-            className="ml-1 text-gray-400 hover:text-gray-600"
-          >
-            {comment.isCollapsed ? "+" : "−"}
-          </button>
-        </div>
+        <Accordion
+          type="single"
+          collapsible
+          value={isCollapsed ? "" : comment.id}
+        >
+          <AccordionItem value={comment.id} className="border-none">
+            <div className="flex items-start gap-3 text-sm mb-3 relative">
+              {depth > 0 && (
+                <AccordionTrigger
+                  onClick={() => toggleCollapse(comment.id)}
+                  className="absolute -left-6 top-0 p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors border-none hover:no-underline h-auto w-auto z-10"
+                  style={{ transform: "translateX(-2px)" }}
+                ></AccordionTrigger>
+              )}
 
-        {/* Body */}
-        {!comment.isCollapsed && (
-          <div className="space-y-2">
-            <p className="text-sm text-gray-800 leading-relaxed">
-              {comment.body}
-            </p>
+              {/* Top-level comment collapse button */}
+              {depth === 0 && (
+                <AccordionTrigger
+                  onClick={() => toggleCollapse(comment.id)}
+                  className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors border-none hover:no-underline h-auto w-auto mt-0.5"
+                ></AccordionTrigger>
+              )}
 
-            {/* Actions */}
-            <div className="flex items-center gap-3 text-xs text-gray-500">
-              <div className="flex flex-col items-center gap-1">
-              <Vote post={post} voteTo="comment" />
-            </div>
-              <button
-                onClick={() => setReplyingTo(isReplying ? null : comment.id)}
-                className="text-sm hover:text-blue-600 bg-zinc-100 rounded-full p-2"
+              <div
+                className={`flex items-center gap-3 flex-1 ${
+                  depth > 0 ? "pl-4" : ""
+                }`}
               >
-                Reply
-              </button>
-              <button className="text-sm hover:text-blue-600 bg-zinc-100 rounded-full p-2">Share</button>
-              <button className="text-sm hover:text-blue-600 bg-zinc-100 rounded-full p-2">Report</button>
+                <Avatar>
+                  <AvatarImage
+                    src={comment.author.avatar || "/default-avatar.png"}
+                    alt={comment.author.username || "User"}
+                  />
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-semibold">
+                    {comment.author.username?.charAt(0)?.toUpperCase() ||
+                      user?.email?.charAt(0)?.toUpperCase() ||
+                      "U"}
+                  </AvatarFallback>
+                </Avatar>
+
+                <span className="font-medium text-foreground hover:text-primary cursor-pointer transition-colors">
+                  u/{comment.author.username}
+                </span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-muted-foreground">
+                  {formatPostTime(comment.createdAt)}
+                </span>
+              </div>
             </div>
 
-            {/* Reply Input */}
-            {isReplying && user && (
-              <div className="mt-2">
-                <textarea
-                id="commentInput"
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm resize-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder="Write your reply..."
-                />
-                <div className="flex gap-2 mt-2">
+            <AccordionContent className="pb-0 pt-0">
+              <div className={`space-y-3 ${depth > 0 ? "pl-4" : "pl-10"}`}>
+                <p className="text-sm text-foreground leading-relaxed">
+                  {comment.body}
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center">
+                    <Vote post={post} voteTo="comment" />
+                  </div>
                   <button
-                    onClick={() => addReply(comment.id)}
-                    disabled={!replyText.trim()}
-                    className="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    onClick={() =>
+                      setReplyingTo(isReplying ? null : comment.id)
+                    }
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
                   >
                     Reply
                   </button>
+                  <button className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">
+                    Share
+                  </button>
+                  <button className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">
+                    Report
+                  </button>
                   <button
-                    onClick={() => {
-                      setReplyingTo(null);
-                      setReplyText("");
-                    }}
-                    className="px-3 py-1 text-gray-500 text-xs hover:bg-gray-100 rounded-md"
+                    onClick={() => handleSaveComment(comment.id)}
+                    disabled={savedComment.isPending}
+                    className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                      isSaved
+                        ? "text-blue-400 bg-accent/10"
+                        : "text-muted-foreground hover:text-zinc-800 hover:bg-accent/10"
+                    } `}
                   >
-                    Cancel
+                    <Bookmark
+                      size={14}
+                      className={isSaved ? "fill-current" : ""}
+                    />
+                    {isSaved ? "Saved" : "Save"}
                   </button>
                 </div>
-              </div>
-            )}
 
-            {/* Nested replies */}
-            {comment.replies?.length > 0 &&
-              comment.replies.map((reply) => renderComment(reply, depth + 1))}
-          </div>
-        )}
+                {isReplying && user && (
+                  <div className="mt-4 p-4 bg-muted/30 rounded-lg border">
+                    <textarea
+                      id="commentInput"
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      className="w-full bg-background border border-border rounded-lg p-3 text-sm resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                      rows={3}
+                      placeholder="Write your reply..."
+                    />
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => addReply(comment.id)}
+                        disabled={!replyText.trim()}
+                        className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Reply
+                      </button>
+                      <button
+                        onClick={() => {
+                          setReplyingTo(null);
+                          setReplyText("");
+                        }}
+                        className="px-4 py-2 text-muted-foreground text-sm font-medium hover:bg-muted rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Nested replies */}
+                {comment.replies?.length > 0 && (
+                  <div className="space-y-4 mt-4">
+                    {comment.replies.map((reply) =>
+                      renderComment(reply, depth + 1)
+                    )}
+                  </div>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     );
   };
 
   return (
-    <div className=" bg-gray-50 ">
-      <div className="max-w-4xl mx-auto px-4 py-4">
-        <div className="mb-4">
-          <div className="flex gap-4 p-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                <button onClick={() => window.history.back()} className="rounded-full px-2 py-1 bg-gray-100 hover:bg-gray-200"> Back</button>
-                <span className="hover:underline cursor-pointer">
-                  r/{post.community.communityName}
-                </span>
-                <span>•</span>
-                <span>Posted by</span>
-                <span className="hover:underline cursor-pointer">
-                  {post.author.username}
-                </span>
-                <span>{formatPostTime(post.updatedAt)}</span>
-              </div>
-
-              <h1 className="text-xl font-semibold text-gray-900 mb-3">
-                {post.title}
-              </h1>
-
-              {post.content && (
-                <div className="text-sm text-gray-800 mb-4 leading-relaxed whitespace-pre-line">
-                  <div
-                    dangerouslySetInnerHTML={{ __html: post?.content.html }}
-                    className="prose max-w-none"
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <div className="flex flex-col items-center gap-1">
-              <Vote post={post} voteTo="post" />
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="mb-6">
+          <div className="bg-card rounded-xl border shadow-sm p-6">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
+              <button
+                onClick={() => window.history.back()}
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </button>
+              <span className="text-primary hover:underline cursor-pointer font-medium">
+                r/{post.community.communityName}
+              </span>
+              <span>•</span>
+              <span>Posted by</span>
+              <span className="text-primary hover:underline cursor-pointer font-medium">
+                u/{post.author.username}
+              </span>
+              <span>{formatPostTime(post.updatedAt)}</span>
             </div>
-                <button className="flex items-center gap-1 bg-zinc-100 rounded-full p-2 cursor-pointer" onClick={() => router.push('#commentInput')}>
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{post.comments.length} Comments</span>
-                </button>
-                <button className="flex items-center gap-1 hover:underline bg-zinc-100 rounded-full p-2">
-                  <Share className="w-4 h-4" />
-                  <span>Share</span>
-                </button>
-                <button className="flex items-center gap-1 hover:underline bg-zinc-100 rounded-full p-2">
-                  <Bookmark className="w-4 h-4" />
-                  <span>Save</span>
-                </button>
-                <button className="flex items-center gap-1 hover:underline bg-zinc-100 rounded-full p-2">
-                  <MoreHorizontal className="w-4 h-4" />
-                </button>
+
+            <h1 className="text-2xl font-bold text-foreground mb-4 text-balance">
+              {post.title}
+            </h1>
+
+            {post.content && (
+              <div className="text-sm text-foreground mb-6 leading-relaxed">
+                <div
+                  dangerouslySetInnerHTML={{ __html: post?.content.html }}
+                  className="prose prose-sm max-w-none dark:prose-invert"
+                />
               </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center">
+                <Vote post={post} voteTo="post" />
+              </div>
+              <button
+                className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-sm font-medium"
+                onClick={() => router.push("#commentInput")}
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>{post.comments.length} Comments</span>
+              </button>
+              <button className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-sm font-medium">
+                <Share className="w-4 h-4" />
+                <span>Share</span>
+              </button>
+              <button className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-sm font-medium">
+                <Bookmark className="w-4 h-4" />
+                <span>Save</span>
+              </button>
             </div>
           </div>
         </div>
 
         {user && (
-          <div className="mb-4 p-4">
-            <div className="text-sm text-gray-600 mb-2">
-              Comment as{" "}
-              <span className="text-blue-600">u/{user.username}</span>
-            </div>
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="w-full border border-gray-300 rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={4}
-              placeholder="What are your thoughts?"
-            />
-            <div className="flex justify-end mt-2">
-              <button
-                onClick={addComment}
-                disabled={createComment.isPending || !newComment.trim()}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {createComment.isPending ? "Posting..." : "Comment"}
-              </button>
+          <div className="mb-6">
+            <div className="bg-card rounded-xl border shadow-sm p-6">
+              <div className="text-sm text-muted-foreground mb-3">
+                Comment as{" "}
+                <span className="text-primary font-medium">
+                  u/{user.username}
+                </span>
+              </div>
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg p-4 text-sm resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                rows={4}
+                placeholder="What are your thoughts?"
+              />
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={addComment}
+                  disabled={createComment.isPending || !newComment.trim()}
+                  className="px-6 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {createComment.isPending ? "Posting..." : "Comment"}
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        <div className="mt-6">
-          <h2 className="text-sm font-medium text-gray-700 mb-4">
+        <div className="bg-card rounded-xl border shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-6">
             {post.comments.length} Comments
           </h2>
           <div className="space-y-6">
