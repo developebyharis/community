@@ -1,6 +1,6 @@
 {
-  "name": "My Simple PWA",
-  "short_name": "PWA",
+  "name": "BrainEve",
+  "short_name": "Braineve",
   "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",

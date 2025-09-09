@@ -2,7 +2,7 @@
 
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useClientSession } from "./UseProfile";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -28,7 +28,7 @@ export default function useComment() {
       queryClient.invalidateQueries({ queryKey: ["comments"] });
       toast.success("Comment created successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message: string }>) => {
       toast.error(
         `Failed to create comment: ${
           error?.response?.data?.message || error.message
@@ -50,7 +50,7 @@ export default function useComment() {
       queryClient.invalidateQueries({ queryKey: ["comments"] });
       toast.success("Comment updated successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message: string }>) => {
       toast.error(
         `Failed to update comment: ${
           error?.response?.data?.message || error.message
@@ -68,7 +68,7 @@ export default function useComment() {
       queryClient.invalidateQueries({ queryKey: ["comments"] });
       toast.success("Comment deleted successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message: string }>) => {
       toast.error(
         `Failed to delete comment: ${
           error?.response?.data?.message || error.message

@@ -1,8 +1,7 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { User } from "@/types/user";
 import { toast } from "sonner";
 import type { Session } from "next-auth";
@@ -39,13 +38,13 @@ export function useFetchProfile() {
     },
     enabled: !!session?.accessToken,
     staleTime: 10 * 60 * 1000,
-    retry: (failureCount, error: any) => {
+    retry: (failureCount:number, error: AxiosError<{ status: number }>) => {
       if (error?.response?.status === 401 || error?.response?.status === 403) {
         return false;
       }
       return failureCount < 2;
     },
-    throwOnError: (error: any) => {
+    throwOnError: (error: AxiosError<{ status: number }>) => {
       if (error?.response?.status === 404) {
         toast.error("Profile not found. Please complete your profile setup.");
         return false;

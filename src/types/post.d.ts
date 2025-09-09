@@ -47,18 +47,18 @@ export interface Comment {
   replies: Reply[];
 }
 
-export interface Reply {
+export interface Reply extends Vote {
   id: string;
   body: string;
   createdAt: Date;
   author: User;
+  votes: Vote[];
 }
 
 export interface PostBodyData {
   html: string;
   text: string;
 }
-
 
 export interface Reply {
   id: string;
@@ -70,7 +70,7 @@ export interface Reply {
     username: string;
     avatar: string | null;
   };
-  replies?: Reply[];
+  replies: Reply[];
 }
 
 export interface Comment extends Reply {
@@ -85,7 +85,26 @@ export interface Comment extends Reply {
   replies: Reply[];
   parentId?: string;
   isCollapsed?: boolean;
-  upvotes?: number;
-  downvotes?: number;
-  userVote?: "up" | "down" | null;
+}
+
+export interface SavedPost {
+  id: string;
+  postId: string;
+  posts: {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: string;
+    community: {
+      id: string;
+      communityName: string;
+      memberCount?: number;
+    };
+    _count?: {
+      comments: number;
+      votes: number;
+    };
+  };
+  userId: string;
+  createdAt: string;
 }

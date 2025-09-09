@@ -127,3 +127,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.highlight-comment {
+  @apply rounded-xl transition-all duration-300 bg-zinc-100;
+}

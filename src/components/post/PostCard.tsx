@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageCircle, Share, Bookmark, MoreHorizontal } from "lucide-react";
-import type { Post } from "@/types/post";
+import { MessageCircle, Share, Bookmark } from "lucide-react";
+import type { Post, SavedPost } from "@/types/post";
 import { formatNumber, formatPostTime, slugifyTitle } from "@/lib/utils";
 import Link from "next/link";
 import Vote from "../vote";
@@ -11,9 +11,10 @@ import useSaved from "@/hooks/useSaved";
 export default function PostCard({ post }: { post: Post }) {
   const { savedPost, fetchSavedPost } = useSaved();
   const [isBookmarked, setIsBookmarked] = useState(false);
+  console.log("fetchSavedPost.data",fetchSavedPost.data)
   useEffect(() => {
     if (fetchSavedPost.data) {
-      const savedPostIds = fetchSavedPost.data.map((p: any) => p.postId);
+      const savedPostIds = fetchSavedPost.data.map((p: SavedPost) => p.postId);
       const isPostSaved = savedPostIds.find((pId: string) => pId === post.id);
       setIsBookmarked(!!isPostSaved);
     }
@@ -99,10 +100,6 @@ export default function PostCard({ post }: { post: Post }) {
                 size={16}
                 className={isBookmarked ? "fill-current" : ""}
               />
-            </button>
-
-            <button className="p-2 rounded-md hover:bg-accent/10 transition-colors text-muted-foreground hover:text-accent">
-              <MoreHorizontal size={16} />
             </button>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useClientSession } from "./UseProfile";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -34,7 +34,7 @@ export default function useVote() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message: string }>) => {
       toast.error(
         `Failed to vote on post: ${
           error?.response?.data?.message || error.message
@@ -55,7 +55,7 @@ export default function useVote() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments"] });
     },
-    onError: (error: any) => {
+    onError: (error:  AxiosError<{ message: string }>) => {
       toast.error(
         `Failed to vote on comment: ${
           error?.response?.data?.message || error.message

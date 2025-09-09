@@ -43,36 +43,36 @@ export default function Vote({ post, voteTo }: { post: Post; voteTo: string }) {
   };
 
   return (
-      <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-full">
-        <button
-          onClick={() => handleVote("up")}
-          className={`p-1 rounded-full hover:bg-gray-300 transition-colors ${
-            userVote === "up" ? "text-orange-500 bg-orange-50" : "text-gray-400"
-          }`}
-        >
-          <ChevronUp size={16} />
-        </button>
+    <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-full">
+      <button
+        onClick={() => handleVote("up")}
+        className={`p-1 rounded-full hover:bg-gray-300 transition-colors ${
+          userVote === "up" ? "text-orange-500 bg-orange-50" : "text-gray-400"
+        }`}
+      >
+        <ChevronUp size={16} />
+      </button>
 
-        <span
-          className={`text-sm font-medium min-w-[12px] text-center ${
-            userVote === "up"
-              ? "text-orange-500"
-              : userVote === "down"
-              ? "text-blue-500"
-              : "text-gray-600"
-          }`}
-        >
-          {formatNumber(localVotes)}
-        </span>
+      <span
+        className={`text-sm font-medium min-w-[12px] text-center ${
+          userVote === "up"
+            ? "text-orange-500"
+            : userVote === "down"
+            ? "text-blue-500"
+            : "text-gray-600"
+        }`}
+      >
+        {formatNumber(localVotes)}
+      </span>
 
-        <button
-          onClick={() => handleVote("down")}
-          className={`p-1 rounded-full hover:bg-gray-300 transition-colors ${
-            userVote === "down" ? "text-blue-500 bg-blue-50" : "text-gray-400"
-          }`}
-        >
-          <ChevronDown size={16} />
-        </button>
-      </div>
+      <button
+        onClick={() => handleVote("down")}
+        className={`p-1 rounded-full hover:bg-gray-300 transition-colors ${
+          userVote === "down" ? "text-blue-500 bg-blue-50" : "text-gray-400"
+        }`}
+      >
+        <ChevronDown size={16} />
+      </button>
+    </div>
   );
 }

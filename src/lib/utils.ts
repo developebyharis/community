@@ -1,3 +1,4 @@
+import { Comment } from "@/types/post";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -52,24 +53,24 @@ export const formatNumber = (num: number) => {
   return num.toString();
 };
 
-export function buildCommentTree(comments: any[]) {
-  const map = new Map<string, any>();
-  const roots: any[] = [];
+export function buildCommentTree(comments: Comment[]): Comment[] {
+  const map = new Map<string, Comment>();
+  const roots: Comment[] = [];
 
-  // Initialize map
   comments.forEach((c) => {
     map.set(c.id, { ...c, replies: [] });
   });
 
-  // Build tree
   comments.forEach((c) => {
+    const mapped = map.get(c.id);
+    if (!mapped) return;
     if (c.parentId) {
       const parent = map.get(c.parentId);
       if (parent) {
-        parent.replies.push(map.get(c.id));
+        parent.replies.push(mapped);
       }
     } else {
-      roots.push(map.get(c.id));
+      roots.push(mapped);
     }
   });
 

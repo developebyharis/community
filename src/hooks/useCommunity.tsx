@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useClientSession } from "./UseProfile";
 import { toast } from "sonner";
 import { createCommunityValues } from "@/lib/validations/community.schema";
@@ -26,7 +26,7 @@ export default function useCommunity() {
       queryClient.invalidateQueries({ queryKey: ["my-communities"] });
       toast.success(`Community "${data.name}" created successfully!`);
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message: string }>) => {
       toast.error(
         `Failed to create community: ${
           error?.response?.data?.message || error.message
@@ -79,7 +79,7 @@ export default function useCommunity() {
       queryClient.invalidateQueries({ queryKey: ["my-communities"] });
       queryClient.invalidateQueries({ queryKey: ["all-communities"] });
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message: string }>) => {
       toast.error(
         `Failed to follow community: ${
           error?.response?.data?.message || error.message
@@ -104,7 +104,7 @@ export default function useCommunity() {
       queryClient.invalidateQueries({ queryKey: ["my-communities"] });
       queryClient.invalidateQueries({ queryKey: ["all-communities"] });
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message: string }>) => {
       toast.error(
         `Failed to unfollow community: ${
           error?.response?.data?.message || error.message

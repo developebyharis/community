@@ -3,6 +3,7 @@ import useCommunity from "@/hooks/useCommunity";
 import CommunityCard from "@/components/community/CommunityCard";
 import { Loader2, AlertCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Community } from "@/types/community";
 
 const CommunityCardSkeleton = () => (
   <div className="border border-gray-200 rounded-lg p-6 animate-pulse">
@@ -110,7 +111,7 @@ export  default function CommunitiesPage() {
 
       {communities.length > 0 ? (
         <div className="grid gap-6">
-          {communities.map((community: any) => (
+          {communities.map((community: Community) => (
             <CommunityCard
               key={community.id}
               community={community}

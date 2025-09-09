@@ -5,10 +5,7 @@ import {
   MessageCircle,
   Share,
   Bookmark,
-  MoreHorizontal,
   ArrowLeft,
-  ChevronDown,
-  ChevronRight,
 } from "lucide-react";
 import {
   Accordion,
@@ -25,6 +22,21 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import useSaved from "@/hooks/useSaved";
 
+export interface SavedComment {
+  commentId: string;
+  id: string;
+  userId: string;
+
+  comments: {
+    id: string;
+    body: string;
+    createdAt: string;
+    commentById: string;
+    postId: string;
+    updatedAt: string;
+  };
+}
+
 export default function PostDetail({
   post,
   user,
@@ -40,12 +52,13 @@ export default function PostDetail({
   useEffect(() => {
     if (fetchSavedComment.data) {
       const commentIds = fetchSavedComment.data.map(
-        (saved: any) => saved.commentId
+        (saved: SavedComment) => saved.commentId
       );
+
       setSavedCommentIds(new Set(commentIds));
     }
   }, [fetchSavedComment.data]);
-
+  console.log("commentIds", fetchSavedComment.data);
   // Update saved state when a comment is saved/unsaved
   useEffect(() => {
     if (savedComment.isSuccess && savedComment.data) {
@@ -60,7 +73,7 @@ export default function PostDetail({
         return newSet;
       });
     }
-  }, [savedComment.isSuccess, savedComment.data]);
+  }, [savedComment, savedComment.data]);
 
   const { createComment } = useComment();
   const [newComment, setNewComment] = useState<string>("");
@@ -75,6 +88,24 @@ export default function PostDetail({
     new Set()
   );
   const router = useRouter();
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith("#comment-")) {
+      const commentId = hash.replace("#comment-", "");
+      const element = document.getElementById(`comment-${commentId}`);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          element.classList.add("highlight-comment");
+          setTimeout(() => element.classList.remove("highlight-comment"), 3000);
+        }, 100);
+      }
+    }
+  }, []);
 
   const toggleCollapse = (commentId: string) => {
     setCollapsedComments((prev) => {
@@ -124,13 +155,14 @@ export default function PostDetail({
     const isReplying = replyingTo === comment.id;
     const isCollapsed = collapsedComments.has(comment.id);
     const isSaved = isCommentSaved(comment.id);
-
+console.log("commetn",comment)
     return (
       <div
         key={comment.id}
+        id={`comment-${comment.id}`}
         className={`${
           depth > 0 ? "ml-6 border-l border-border/40 relative" : ""
-        }`}
+        } scroll-mt-20`}
       >
         <Accordion
           type="single"
@@ -147,7 +179,6 @@ export default function PostDetail({
                 ></AccordionTrigger>
               )}
 
-              {/* Top-level comment collapse button */}
               {depth === 0 && (
                 <AccordionTrigger
                   onClick={() => toggleCollapse(comment.id)}
@@ -254,7 +285,6 @@ export default function PostDetail({
                   </div>
                 )}
 
-                {/* Nested replies */}
                 {comment.replies?.length > 0 && (
                   <div className="space-y-4 mt-4">
                     {comment.replies.map((reply) =>

@@ -1,7 +1,14 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Home, Users, Star, ChevronDown, Settings, HelpCircle } from "lucide-react"
+import { useState } from "react";
+import {
+  Home,
+  Users,
+  Star,
+  ChevronDown,
+  Settings,
+  HelpCircle,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -13,24 +20,25 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import CreateCommunityDialog from "./community/CreateCommunity"
-import useCommunity from "@/hooks/useCommunity"
-import CommunityAvatar from "./community/CommunityAvatar"
-import { Button } from "./ui/button"
-import { useRouter } from "next/navigation"
-import { COMMUNITY_PREFIX } from "@/constants/CommunityPrefix"
-import Link from "next/link"
+} from "@/components/ui/sidebar";
+import CreateCommunityDialog from "./community/CreateCommunity";
+import useCommunity from "@/hooks/useCommunity";
+import CommunityAvatar from "./community/CommunityAvatar";
+import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
+import { COMMUNITY_PREFIX } from "@/constants/CommunityPrefix";
+import Link from "next/link";
+import { Community } from "@/types/community";
 
 const feedItems = [
   { title: "Home", url: "/", icon: Home },
   { title: "Saved", url: "#", icon: Star },
-]
+];
 
 const otherItems = [
   { title: "User Settings", url: "/settings", icon: Settings },
   { title: "Help", url: "#", icon: HelpCircle },
-]
+];
 
 const CommunitySkeleton = () => (
   <div className="flex items-center gap-3 px-3 py-2">
@@ -40,17 +48,23 @@ const CommunitySkeleton = () => (
       <div className="h-2 bg-muted rounded w-16 animate-pulse"></div>
     </div>
   </div>
-)
+);
 
 export function AppSidebar() {
-  const [showAllCommunities, setShowAllCommunities] = useState(false)
-  const { fetchMyCommunities } = useCommunity()
-  const router = useRouter()
+  const [showAllCommunities, setShowAllCommunities] = useState(false);
+  const { fetchMyCommunities } = useCommunity();
+  const router = useRouter();
 
-  const { data: myCommunitiesData, isLoading: isLoadingCommunities, error: communitiesError } = fetchMyCommunities
+  const {
+    data: myCommunitiesData,
+    isLoading: isLoadingCommunities,
+    error: communitiesError,
+  } = fetchMyCommunities;
 
-  const communities = myCommunitiesData?.myFollowedCommunities?.data || []
-  const visibleCommunities = showAllCommunities ? communities : communities.slice(0, 5)
+  const communities = myCommunitiesData?.myFollowedCommunities?.data || [];
+  const visibleCommunities = showAllCommunities
+    ? communities
+    : communities.slice(0, 5);
   return (
     <Sidebar className="lg:pt-12 md:pt-12 pt-12 bg-background border-r border-border">
       <SidebarTrigger className="md:hidden" />
@@ -64,10 +78,18 @@ export function AppSidebar() {
             <SidebarMenu className="space-y-0">
               {feedItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="hover:bg-muted rounded-md transition-colors h-8 px-3">
-                    <a href={item.url} className="flex items-center gap-3 text-sm">
+                  <SidebarMenuButton
+                    asChild
+                    className="hover:bg-muted rounded-md transition-colors h-8 px-3"
+                  >
+                    <a
+                      href={item.url}
+                      className="flex items-center gap-3 text-sm"
+                    >
                       <item.icon className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">{item.title}</span>
+                      <span className="font-medium text-foreground">
+                        {item.title}
+                      </span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -86,7 +108,11 @@ export function AppSidebar() {
                 onClick={() => setShowAllCommunities(!showAllCommunities)}
                 className="text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded hover:bg-muted"
               >
-                <ChevronDown className={`w-3 h-3 transition-transform ${showAllCommunities ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`w-3 h-3 transition-transform ${
+                    showAllCommunities ? "rotate-180" : ""
+                  }`}
+                />
               </button>
             )}
           </div>
@@ -122,7 +148,7 @@ export function AppSidebar() {
 
               {!isLoadingCommunities && !communitiesError && (
                 <>
-                  {visibleCommunities.map((community: any) => (
+                  {visibleCommunities.map((community: Community) => (
                     <SidebarMenuItem key={community.id}>
                       <SidebarMenuButton
                         asChild
@@ -170,7 +196,9 @@ export function AppSidebar() {
                   {communities.length === 0 && !isLoadingCommunities && (
                     <SidebarMenuItem>
                       <div className="px-3 py-4 text-center rounded-md bg-muted/50">
-                        <div className="text-xs text-muted-foreground mb-2">No communities yet</div>
+                        <div className="text-xs text-muted-foreground mb-2">
+                          No communities yet
+                        </div>
                         <Button
                           onClick={() => router.push("/communities")}
                           variant="outline"
@@ -193,10 +221,18 @@ export function AppSidebar() {
             <SidebarMenu className="space-y-0">
               {otherItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="hover:bg-muted rounded-md transition-colors h-8 px-3">
-                    <a href={item.url} className="flex items-center gap-3 text-sm">
+                  <SidebarMenuButton
+                    asChild
+                    className="hover:bg-muted rounded-md transition-colors h-8 px-3"
+                  >
+                    <a
+                      href={item.url}
+                      className="flex items-center gap-3 text-sm"
+                    >
                       <item.icon className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">{item.title}</span>
+                      <span className="font-medium text-foreground">
+                        {item.title}
+                      </span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -213,5 +249,5 @@ export function AppSidebar() {
         </div>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

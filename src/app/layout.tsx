@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "My Next.js PWA",
-  description: "Installable PWA with Next.js",
+  title: "BrainEve",
+  description: "A community which will make youth more competant than ever",
   manifest: "/manifest.json",
   themeColor: "#000000",
   icons: {
